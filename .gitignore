@@ -1,0 +1,29 @@
+# .gitignore
+
+# Archivos del entorno virtual de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.env
+
+# Archivos y carpetas del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos y carpetas de los editores de código
+.vscode/
+.idea/
+
+# Archivos de registro
+*.log
+
+# Carpeta de plugins
+/plugins/
+
+Mr_Robot_v1_0.code-workspace

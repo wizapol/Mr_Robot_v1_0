@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MR_Robot</title>
+    <link rel="stylesheet" href="static/css/styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="#chat">Chat</a>
+            <a href="#memory-actions">Acciones de memoria</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="chat" class="chat">
+            <div class="messages">
+                <!-- Los mensajes se añadirán aquí dinámicamente -->
+            </div>
+            <form id="chat-form" autocomplete="off">
+                <textarea id="user-input" placeholder="Escribe tu mensaje aquí..."></textarea>
+                <button type="submit">Enviar</button>
+            </form>
+        </section>
+        <section id="memory-actions" class="memory-actions">
+            <h2>Acciones de memoria</h2>
+            <div class="memory-buttons">
+                <button id="delete-short-term-memory">Borrar memoria a corto plazo</button>
+                <button id="delete-long-term-memory">Borrar memoria a largo plazo</button>
+                <button id="delete-all-memory">Borrar todas las memorias</button>
+            </div>
+        </section>
+    </main>
+
+    <script src="static/js/scripts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/smooth-scroll/dist/smooth-scroll.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror/lib/codemirror.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror/lib/codemirror.css">
+    <script src="https://cdn.jsdelivr.net/npm/codemirror/mode/javascript/javascript.js"></script>
+</body>
+</html>

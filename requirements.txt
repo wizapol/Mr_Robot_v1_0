@@ -1,0 +1,11 @@
+# requirements.txt
+
+Flask
+Flask-SocketIO
+gunicorn
+redis
+requests
+openai
+sqlite3
+simple-websocket
+eventlet
