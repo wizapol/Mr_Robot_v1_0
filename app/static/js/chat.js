@@ -1,5 +1,8 @@
+// chat.js
 import { createCodeSnippet } from "./codeSnippet.js";
-import { saveMessageToLocalStorage, loadMessagesFromLocalStorage, clearLocalStorage } from "./localStorage.js";
+import { saveMessageToLocalStorage, loadMessagesFromLocalStorage } from "./localStorage.js";
+import { initializeEditControls } from "./editControls.js";
+import { initializeMemoryControls } from "./memoryControls.js";
 
 export function addMessageToChat(content, type) {
   const message = document.createElement("div");
@@ -30,6 +33,8 @@ export function addMessageToChat(content, type) {
 
 document.addEventListener("DOMContentLoaded", () => {
   loadMessagesFromLocalStorage();
+  initializeEditControls();
+  initializeMemoryControls();
   const chatForm = document.getElementById("chat-form");
   const userInput = document.getElementById("user-input");
 
@@ -59,54 +64,9 @@ document.addEventListener("DOMContentLoaded", () => {
       },
     });
   });
-
-  // Agregar controladores de eventos para los botones de borrar memoria
-  document.getElementById("delete-short-term-memory").addEventListener("click", () => {
-    $.ajax({
-      type: "POST",
-      url: "/chat/delete_short_term_memory",
-      success: function (response) {
-        console.log(response);
-        alert(response.message);
-      },
-      error: function (error) {
-        console.error(error);
-      },
-    });
-    clearChat();
-    clearLocalStorage();
-  });
-
-  document.getElementById("delete-long-term-memory").addEventListener("click", () => {
-    $.ajax({
-      type: "POST",
-      url: "/chat/delete_long_term_memory",
-      success: function (response) {
-        console.log(response);
-        alert(response.message);
-      },
-      error: function (error) {
-        console.error(error);
-      },
-    });
-  });
-
-  document.getElementById("delete-all-memory").addEventListener("click", () => {
-    $.ajax({
-      type: "POST",
-      url: "/chat/delete_all_memory",
-      success: function (response) {
-        console.log(response);
-        alert(response.message);
-      },
-      error: function (error) {
-        console.error(error);
-      },
-    });
-  });
 });
 
-function clearChat() {
+export function clearChat() {
   const messages = document.querySelector(".messages");
   messages.innerHTML = "";
 }

@@ -1,0 +1,48 @@
+html {
+    background-color: black;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+main {
+    margin-left: 22.5%;
+    padding: 2rem;
+    background-color: black;
+    color: white;
+    height: 85vh;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+#user-input {
+    flex-grow: 1;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    resize: vertical;
+}
+
+button {
+    background-color: #333;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+@media screen and (max-width: 600px) {
+    main {
+        margin-left: 0;
+    }
+}
