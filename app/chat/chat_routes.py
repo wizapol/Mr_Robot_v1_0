@@ -15,7 +15,7 @@ def chat_route(app):
     def chat():
         if request.method == 'POST':
             """Responder a un mensaje enviado por el usuario."""
-            print("Chat route called")
+            print("***Chat route called***")
             message = request.json["message"]
             response = chat_controller.chat(message)
             return jsonify({"message": response})

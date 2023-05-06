@@ -21,13 +21,11 @@ class MemoryController:
         cursor = self.connection.cursor()
         cursor.execute("INSERT OR REPLACE INTO memory (key, value) VALUES (?, ?)", (key, value))
         self.connection.commit()
-        print("Stored memory with key: {} and value: {}".format(key, value))
 
     def retrieve_memory(self, key):
         cursor = self.connection.cursor()
         cursor.execute("SELECT value FROM memory WHERE key = ?", (key,))
         result = cursor.fetchone()
-        print("Retrieved memory with key: {} and value: {}".format(key, result[0] if result else None))
         return result[0] if result else None
 
     def delete_memory(self, key):

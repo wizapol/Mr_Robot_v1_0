@@ -1,17 +1,21 @@
 import openai
-import re
+import spacy
 from app.memory import MemoryController
 from app.plugins.plugins import PluginManager
 from app.memory.redis_memory import RedisMemoryController
 from transformers import GPT2Tokenizer
+from app.chat.chat_utils.tokenizer_utils import truncate_conversation
+from app.chat.chat_utils.response_utils import generate_response
 from app.chat.memory_patterns import check_remember_patterns
+
+nlp = spacy.load("es_core_news_md")
 
 class ChatController:
     def __init__(self, api_key="", model=""):
         self.api_key = api_key
         self.model = model
-        self.short_term_memory_controller = RedisMemoryController()
-        self.long_term_memory_controller = MemoryController()
+        self.st_memory_ctrl = RedisMemoryController()
+        self.lt_memory_ctrl = MemoryController()
         self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
         openai.api_key = self.api_key
 
@@ -22,94 +26,74 @@ class ChatController:
     def set_model(self, model):
         self.model = model
 
-    def _truncate_conversation(self, conversation, max_tokens):
-        current_tokens = 0
-        truncated_conversation = []
+    def store_memory(self, message, memory_type):
+        memory = self.lt_memory_ctrl.retrieve_memory(memory_type)
 
-        for message in reversed(conversation):
-            message_tokens = len(self.tokenizer.tokenize(message["content"]))
-            if current_tokens + message_tokens > max_tokens:
-                break
-
-            truncated_conversation.insert(0, message)
-            current_tokens += message_tokens
-
-        return truncated_conversation
-
-    def store_to_long_term_memory(self, message):
-        long_term_memory = self.long_term_memory_controller.retrieve_memory("long_term_memory")
-
-        if long_term_memory is None:
-            long_term_memory = []
+        if memory is None:
+            memory = []
         else:
-            long_term_memory = eval(long_term_memory)
+            memory = eval(memory)
 
-        if isinstance(long_term_memory, list):
-            long_term_memory.append(message)
-        else:
-            long_term_memory = [message]
+        memory.append({"role": message["role"], "content": message["content"].replace('\r\n', '\n')})
 
-        self.long_term_memory_controller.store_memory("long_term_memory", str(long_term_memory))
+        print(f"***Almacenando en {memory_type}: {message}")
+        self.lt_memory_ctrl.store_memory(memory_type, str(memory))
+
+    def find_related_memory(self, message):
+        memory = self.lt_memory_ctrl.retrieve_memory("long_term_memory")
+        if memory is not None:
+            memory = eval(memory)
+            related_memory = []
+
+            message_doc = nlp(message.lower())
+            for mem in memory:
+                if "content" in mem and isinstance(mem["content"], str):
+                    mem_doc = nlp(mem["content"].lower())
+                    similarity = message_doc.similarity(mem_doc)
+                    print(f"***Comparando '{message}' con '{mem['content']}': similitud = {similarity}")
+                    if similarity > 0.5:
+                        related_memory.append(mem)
+            print(f"***Memoria a largo plazo: {memory}")
+            print(f"***Memoria relacionada: {related_memory}")
+            return related_memory if related_memory else None
+        return None
+
+    def process_response(self, response):
+        plugin_manager = PluginManager()
+        plugin_response = plugin_manager.apply_plugins(response)
+
+        cleaned_response = plugin_response
+
+        return cleaned_response
 
     def chat(self, message, context_length=100, max_response_length=2000, temperature=0.5):
-        conversation = self.short_term_memory_controller.retrieve_memory("conversation")
-        if conversation is None:
-            conversation = []
-        else:
-            conversation = eval(conversation)
-
+        conversation = eval(self.st_memory_ctrl.retrieve_memory("conversation") or "[]")
         conversation.append({"role": "user", "content": message})
 
-        long_term_memory = self.long_term_memory_controller.retrieve_memory("long_term_memory")
-        if long_term_memory is not None:
-            long_term_memory = eval(long_term_memory)
-            memory_summary = " ".join([mem["content"] for mem in long_term_memory])
-        else:
-            memory_summary = ""
+        memory_summary = " ".join([mem["content"] for mem in self.find_related_memory(message) or []])
 
         max_tokens = 4096 - max_response_length
-        truncated_conversation = self._truncate_conversation(conversation, max_tokens)
+        truncated_conversation = truncate_conversation(conversation, max_tokens, self.tokenizer)
 
-        if long_term_memory is not None:
-            prompt = [{"role": "system", "content": f"Your long-term memory includes the following information: {memory_summary}"}] + truncated_conversation
-        else:
-            prompt = [{"role": "system", "content": "You are a helpful AI assistant."}] + truncated_conversation
+        print(f"***Resumen de memoria: {memory_summary}")
+        response = f"""{generate_response(self.model, memory_summary, truncated_conversation, max_response_length, temperature)}"""
 
-        response = openai.ChatCompletion.create(
-            model=self.model,
-            messages=prompt,
-            max_tokens=max_response_length,
-            n=1,
-            temperature=temperature,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0.5
-        )
-        print(response)
-
-        generated_response = response["choices"][0]["message"]["content"].strip()
+        conversation.append({"role": "system", "content": response})
+        self.st_memory_ctrl.store_memory("conversation", str(conversation))
 
         memory_content = check_remember_patterns(message)
         if memory_content:
-            self.store_to_long_term_memory({"role": "memory", "content": memory_content})
+            self.store_memory({"role": "system", "content": memory_content.replace('\r\n', '\n')}, "long_term_memory")
 
-        conversation.append({"role": "assistant", "content": generated_response})
-        self.short_term_memory_controller.store_memory("conversation", str(conversation))
-        plugin_manager = PluginManager()
-        plugin_response = plugin_manager.apply_plugins(generated_response)
-        processed_response = re.sub('[^0-9a-zA-ZáéíóúÁÉÍÓÚñÑ\n\.\?,!\'"()\-]+', ' ', plugin_response)
-        return processed_response
+        return self.process_response(response)
 
     def delete_short_term_memory(self):
-        self.short_term_memory_controller.delete_memory("conversation")
+        self.st_memory_ctrl.delete_memory("conversation")
 
     def delete_long_term_memory(self):
-        self.long_term_memory_controller.delete_memory("long_term_memory")
+        self.lt_memory_ctrl.delete_memory("long_term_memory")
 
     def delete_all_memory(self):
         self.delete_short_term_memory()
         self.delete_long_term_memory()
-
-
-
 

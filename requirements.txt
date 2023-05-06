@@ -2,11 +2,14 @@
 
 Flask
 Flask-SocketIO
-gunicorn
+spacy
+transformers
+dotenv
+os
 redis
-requests
+lask_sqlalchemy
 openai
 sqlite3
 simple-websocket
-eventlet
-#pygments
+importlib
+re
