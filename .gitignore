@@ -11,6 +11,7 @@ __pycache__/
 dist/
 build/
 .env
+*.db
 
 # Archivos y carpetas del sistema operativo
 .DS_Store
