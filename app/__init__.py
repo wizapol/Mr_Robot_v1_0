@@ -1,10 +1,8 @@
 from flask import Flask, send_from_directory
 from flask_socketio import SocketIO
 from .chat import chat_bp
-from .training import training_bp
 from .memory import memory_bp
 from .plugins import plugins_bp
-from .admin import admin_bp
 from . import db
 from app.chat.chat_routes import chat_route
 
@@ -29,10 +27,8 @@ def create_app():
 
     # Registrar blueprints
     app.register_blueprint(chat_bp)
-    app.register_blueprint(training_bp)
     app.register_blueprint(memory_bp)
     app.register_blueprint(plugins_bp)
-    app.register_blueprint(admin_bp)
 
     # Agregar ruta para servir el archivo HTML
     @app.route("/")

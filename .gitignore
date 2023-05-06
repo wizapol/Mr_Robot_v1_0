@@ -27,3 +27,4 @@ Thumbs.db
 /plugins/
 
 Mr_Robot_v1_0.code-workspace
+app/memory/memory.db

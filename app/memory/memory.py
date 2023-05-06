@@ -2,7 +2,7 @@ import sqlite3
 import os
 
 class MemoryController:
-    def __init__(self, db_path="memory.db"):
+    def __init__(self, db_path="./app/memory/memory.db"):
         self.db_path = db_path
         self.connection = sqlite3.connect(db_path, check_same_thread=False)
         self._initialize_database()
@@ -21,14 +21,17 @@ class MemoryController:
         cursor = self.connection.cursor()
         cursor.execute("INSERT OR REPLACE INTO memory (key, value) VALUES (?, ?)", (key, value))
         self.connection.commit()
+        print("Stored memory with key: {} and value: {}".format(key, value))
 
     def retrieve_memory(self, key):
         cursor = self.connection.cursor()
         cursor.execute("SELECT value FROM memory WHERE key = ?", (key,))
         result = cursor.fetchone()
+        print("Retrieved memory with key: {} and value: {}".format(key, result[0] if result else None))
         return result[0] if result else None
 
     def delete_memory(self, key):
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM memory WHERE key = ?", (key,))
         self.connection.commit()
+        print("Deleted memory with key: {}".format(key))
