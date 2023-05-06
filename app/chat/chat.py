@@ -66,8 +66,12 @@ class ChatController:
 
         return cleaned_response
 
-    def chat(self, message, context_length=100, max_response_length=2000, temperature=0.5):
+    def chat(self, message, max_response_length=4000, temperature=0.5, edited_message=None):
         conversation = eval(self.st_memory_ctrl.retrieve_memory("conversation") or "[]")
+        
+        if edited_message:
+            message = edited_message
+        
         conversation.append({"role": "user", "content": message})
 
         memory_summary = " ".join([mem["content"] for mem in self.find_related_memory(message) or []])
@@ -84,6 +88,24 @@ class ChatController:
         memory_content = check_remember_patterns(message)
         if memory_content:
             self.store_memory({"role": "system", "content": memory_content.replace('\r\n', '\n')}, "long_term_memory")
+        return self.process_response(response)
+
+    def regenerate_response(self, max_response_length=5000, temperature=0.5):
+        conversation = eval(self.st_memory_ctrl.retrieve_memory("conversation") or "[]")
+        if not conversation:
+            return None
+
+        last_user_message = conversation[-2]["content"] if len(conversation) >= 2 else ""
+        memory_summary = " ".join([mem["content"] for mem in self.find_related_memory(last_user_message) or []])
+
+        max_tokens = 4096 - max_response_length
+        truncated_conversation = truncate_conversation(conversation[:-1], max_tokens, self.tokenizer)
+
+        print(f"***Resumen de memoria: {memory_summary}")
+        response = f"""{generate_response(self.model, memory_summary, truncated_conversation, max_response_length, temperature)}"""
+
+        conversation[-1]["content"] = response
+        self.st_memory_ctrl.store_memory("conversation", str(conversation))
 
         return self.process_response(response)
 
@@ -96,4 +118,3 @@ class ChatController:
     def delete_all_memory(self):
         self.delete_short_term_memory()
         self.delete_long_term_memory()
-

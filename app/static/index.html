@@ -8,7 +8,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror/lib/codemirror.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.25.0/theme/monokai.min.css">
-    
 </head>
 <body>
     <header>
@@ -27,6 +26,12 @@
                 <textarea id="user-input" placeholder="Escribe tu mensaje aquí..."></textarea>
                 <button type="submit">Enviar</button>
             </form>
+            <div id="edit-controls" style="display: none;">
+                <button id="edit-message">Editar mensaje</button>
+                <button id="save-edit">Guardar</button>
+                <button id="cancel-edit">Cancelar</button>
+                <button id="regenerate-response">Regenerar respuesta</button>
+            </div>
         </section>
         <section id="memory-actions" class="memory-actions">
             <h2>Acciones de memoria</h2>
@@ -40,7 +45,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/codemirror/lib/codemirror.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror/mode/javascript/javascript.js"></script>
-    <script src="static/js/scripts.js"></script>
+    <script type="module" src="static/js/chat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/smooth-scroll/dist/smooth-scroll.min.js"></script>
 </body>
 </html>

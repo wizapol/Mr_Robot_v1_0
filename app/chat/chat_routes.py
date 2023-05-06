@@ -20,6 +20,22 @@ def chat_route(app):
             response = chat_controller.chat(message)
             return jsonify({"message": response})
 
+    @app.route("/chat/edit_message", methods=["POST"])
+    def edit_message():
+        print("Edit message route called")
+        message = request.json["message"]
+        new_message = request.json["new_message"]
+        chat_controller.edit_message(message, new_message)
+        response = chat_controller.regenerate_response(new_message)
+        return jsonify({"message": response})
+
+    @app.route("/chat/regenerate_response", methods=["POST"])
+    def regenerate_response():
+        print("Regenerate response route called")
+        message = request.json["message"]
+        response = chat_controller.regenerate_response(message)
+        return jsonify({"message": response})
+
     @app.route("/chat/delete_short_term_memory", methods=["POST"])
     def delete_short_term_memory():
         print("Delete short term memory route called")
