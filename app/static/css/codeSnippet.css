@@ -1,0 +1,32 @@
+/* Additional styles for code snippet */
+.code {
+    border-radius: 0.5rem;
+    padding: 1rem;
+    font-size: 0.9rem;
+    overflow-x: auto;
+    white-space: pre;
+    font-family: 'Fira Code', monospace;
+}
+
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+    padding: 0.25rem 0.5rem;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.copy-code-button {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.copy-code-button:hover {
+    text-decoration: underline;
+}

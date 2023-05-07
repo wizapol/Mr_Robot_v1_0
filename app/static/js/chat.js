@@ -1,5 +1,8 @@
+// chat.js
 import { createCodeSnippet } from "./codeSnippet.js";
-import { saveMessageToLocalStorage, loadMessagesFromLocalStorage, clearLocalStorage } from "./localStorage.js";
+import { saveMessageToLocalStorage, loadMessagesFromLocalStorage } from "./localStorage.js";
+import { initializeEditControls } from "./editControls.js";
+import { initializeMemoryControls } from "./memoryControls.js";
 
 export function addMessageToChat(content, type) {
   const message = document.createElement("div");
@@ -28,12 +31,36 @@ export function addMessageToChat(content, type) {
   saveMessageToLocalStorage(content, type);
 }
 
+async function sendMessage(message) {
+  try {
+    const response = await fetch("/chat/message", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.message;
+  } catch (error) {
+    console.error("Error:", error);
+    return "MR_Robot: Error, cant reach app server.";
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   loadMessagesFromLocalStorage();
+  initializeEditControls();
+  initializeMemoryControls();
   const chatForm = document.getElementById("chat-form");
   const userInput = document.getElementById("user-input");
 
-  chatForm.addEventListener("submit", (e) => {
+  chatForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const message = userInput.value.trim();
     if (!message) return;
@@ -43,70 +70,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     userInput.value = "";
 
-    // Enviar el mensaje al servidor y recibir la respuesta del modelo usando AJAX
-    $.ajax({
-      type: "POST",
-      url: "/chat/message",
-      data: JSON.stringify({ message }),
-      contentType: "application/json",
-      dataType: "json",
-      success: (data) => {
-        addMessageToChat(`MR_Robot: ${data.message}`, "assistant");
-      },
-      error: (error) => {
-        console.error("Error:", error);
-        addMessageToChat("MR_Robot: Error, cant reach app server.", "assistant");
-      },
-    });
-  });
-
-  // Agregar controladores de eventos para los botones de borrar memoria
-  document.getElementById("delete-short-term-memory").addEventListener("click", () => {
-    $.ajax({
-      type: "POST",
-      url: "/chat/delete_short_term_memory",
-      success: function (response) {
-        console.log(response);
-        alert(response.message);
-      },
-      error: function (error) {
-        console.error(error);
-      },
-    });
-    clearChat();
-    clearLocalStorage();
-  });
-
-  document.getElementById("delete-long-term-memory").addEventListener("click", () => {
-    $.ajax({
-      type: "POST",
-      url: "/chat/delete_long_term_memory",
-      success: function (response) {
-        console.log(response);
-        alert(response.message);
-      },
-      error: function (error) {
-        console.error(error);
-      },
-    });
-  });
-
-  document.getElementById("delete-all-memory").addEventListener("click", () => {
-    $.ajax({
-      type: "POST",
-      url: "/chat/delete_all_memory",
-      success: function (response) {
-        console.log(response);
-        alert(response.message);
-      },
-      error: function (error) {
-        console.error(error);
-      },
-    });
+    // Enviar el mensaje al servidor y recibir la respuesta del modelo usando fetch y async/await
+    const responseMessage = await sendMessage(message);
+    addMessageToChat(`MR_Robot: ${responseMessage}`, "assistant");
   });
 });
 
-function clearChat() {
+export function clearChat() {
   const messages = document.querySelector(".messages");
   messages.innerHTML = "";
 }
